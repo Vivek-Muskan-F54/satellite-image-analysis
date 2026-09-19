@@ -1,0 +1,11 @@
+# Datasets
+datasets/
+!datasets/README.md
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# ML artifacts
+# Phase 5 model and evaluation artifacts are intentionally tracked.
+# Future large/generated models should be reviewed before committing.

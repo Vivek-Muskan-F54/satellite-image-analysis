@@ -1,0 +1,8 @@
+{
+  "dataset": "EuroSAT",
+  "num_classes": 10,
+  "image_size": 64,
+  "epochs_trained": 10,
+  "best_val_acc": 0.9414814814814815,
+  "training_date": "2026-09-19 20:26:39"
+}
