@@ -7,10 +7,10 @@ from app.core.config import settings
 
 class S3StorageService(StorageService):
     def __init__(self):
-        if not settings.S3_BUCKET:
+        if not settings.S3_BUCKET_NAME:
             raise ValueError("S3_BUCKET is required when STORAGE_PROVIDER=s3")
             
-        self.bucket = settings.S3_BUCKET
+        self.bucket = settings.S3_BUCKET_NAME
         self.s3_client = boto3.client(
             's3',
             endpoint_url=settings.S3_ENDPOINT_URL,

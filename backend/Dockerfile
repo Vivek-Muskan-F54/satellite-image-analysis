@@ -2,6 +2,11 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
+# Install dependencies required for healthchecks and basic operations
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
 # Copy backend requirements
 COPY backend/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
@@ -13,8 +18,15 @@ RUN pip install --no-cache-dir torch torchvision --index-url https://download.py
 COPY backend/ ./
 
 # Copy ml directory (which includes models, artifacts, inference)
-# We will use .dockerignore to exclude heavy datasets
 COPY ml/ ./ml/
+
+# Set up non-root user
+RUN addgroup --system appgroup && adduser --system --group appuser \
+    && mkdir -p /app/storage/uploads \
+    && chown -R appuser:appgroup /app
+
+USER appuser
+ENV TORCH_HOME=/tmp
 
 EXPOSE 8000
 

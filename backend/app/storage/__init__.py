@@ -5,9 +5,10 @@ from app.storage.cloud import S3StorageService
 
 def get_storage_provider() -> StorageService:
     provider = settings.STORAGE_PROVIDER.lower()
-    
+
     if provider == "local":
-        return LocalStorageService(base_dir=settings.UPLOAD_DIR)
+        from .local import LocalStorageService
+        return LocalStorageService(base_dir=settings.STORAGE_LOCAL_ROOT)
     elif provider == "s3":
         return S3StorageService()
     else:

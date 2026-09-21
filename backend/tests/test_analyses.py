@@ -18,7 +18,7 @@ from app.api.deps import get_db
 import ml.inference.predict
 
 from app.core.config import settings
-settings.UPLOAD_DIR = "test_storage_analyses/uploads"
+settings.STORAGE_LOCAL_ROOT = "test_storage_analyses/uploads"
 settings.STORAGE_PROVIDER = "local"
 
 # Setup test DB
@@ -43,7 +43,7 @@ client = TestClient(app)
 @pytest.fixture(autouse=True)
 def setup_db_and_storage():
     Base.metadata.create_all(bind=engine)
-    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+    os.makedirs(settings.STORAGE_LOCAL_ROOT, exist_ok=True)
     yield
     Base.metadata.drop_all(bind=engine)
     shutil.rmtree("test_storage_analyses", ignore_errors=True)

@@ -42,7 +42,7 @@ def test_local_storage_delete(tmp_path):
 # --- S3 Storage Tests (Mocked) ---
 def test_s3_storage_save(mocker):
     # Mock settings
-    mocker.patch('app.storage.cloud.settings.S3_BUCKET', 'test-bucket')
+    mocker.patch('app.storage.cloud.settings.S3_BUCKET_NAME', 'test-bucket')
     mocker.patch('app.storage.cloud.settings.S3_ENDPOINT_URL', None)
     mocker.patch('app.storage.cloud.settings.S3_REGION', 'us-east-1')
     mocker.patch('app.storage.cloud.settings.S3_ACCESS_KEY_ID', 'test')
@@ -68,7 +68,7 @@ def test_s3_storage_save(mocker):
     )
 
 def test_s3_storage_delete(mocker):
-    mocker.patch('app.storage.cloud.settings.S3_BUCKET', 'test-bucket')
+    mocker.patch('app.storage.cloud.settings.S3_BUCKET_NAME', 'test-bucket')
     mock_boto_client = mocker.patch('boto3.client')
     s3_client_instance = mock_boto_client.return_value
     

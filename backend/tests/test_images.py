@@ -43,10 +43,10 @@ def create_test_image(format="JPEG", size=(100, 100)):
 def setup_db_and_storage():
     app.dependency_overrides[get_db] = override_get_db
     Base.metadata.create_all(bind=engine)
-    os.environ["UPLOAD_DIR"] = "test_storage/uploads"
+    os.environ["STORAGE_LOCAL_ROOT"] = "test_storage/uploads"
     os.environ["STORAGE_PROVIDER"] = "local"
     from app.core.config import settings
-    settings.UPLOAD_DIR = "test_storage/uploads"
+    settings.STORAGE_LOCAL_ROOT = "test_storage/uploads"
     settings.STORAGE_PROVIDER = "local"
     
     from app.storage import storage_service

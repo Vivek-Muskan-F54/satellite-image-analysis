@@ -1,15 +1,20 @@
-
 services:
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8000}
     ports:
       - "5173:80"
-    environment:
-      - VITE_API_BASE_URL=http://localhost:8000
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   backend:
     build:
@@ -18,23 +23,47 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://user:password@db:5432/satellite_db
-      - SECRET_KEY=development_secret_key_change_in_production
-      - ACCESS_TOKEN_EXPIRE_MINUTES=1440
-      - CORS_ORIGINS=["http://localhost:5173","http://127.0.0.1:5173","http://localhost:3000"]
+      - DATABASE_URL
+      - JWT_SECRET_KEY
+      - JWT_ALGORITHM
+      - ACCESS_TOKEN_EXPIRE_MINUTES
+      - CORS_ORIGINS
+      - STORAGE_PROVIDER
+      - STORAGE_LOCAL_ROOT
+      - S3_ENDPOINT_URL
+      - S3_REGION
+      - S3_BUCKET_NAME
+      - S3_ACCESS_KEY_ID
+      - S3_SECRET_ACCESS_KEY
+      - ML_MODEL_PATH
+      - ML_MODEL_VERSION
+      - ML_DEVICE
+      - ENVIRONMENT
+      - LOG_LEVEL
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   db:
     image: postgres:15-alpine
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=satellite_db
+      - POSTGRES_USER=${DB_USER:-dev_user}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-dev_password}
+      - POSTGRES_DB=${DB_NAME:-dev_db}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-dev_user} -d ${DB_NAME:-dev_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:
