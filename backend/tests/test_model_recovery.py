@@ -26,22 +26,20 @@ def test_checkpoint_existence_and_loadability():
     assert model is not None
 
 def test_inference_on_valid_image():
-    # Use split to find a real test image
-    split_file = ARTIFACTS_DIR / "split.json"
-    with open(split_file, "r") as f:
-        splits = json.load(f)
-    
-    test_image_rel = splits["test"][0] # e.g. 'AnnualCrop/image_xyz.jpg'
-    image_path = Path("E:/Cloud Computing/satellite-image-analysis/ml/datasets/raw/2750") / test_image_rel
-    assert image_path.exists()
+    from ml.inference.predict import LULCPredictor
+    from PIL import Image
+    import io
+    import json
+    dummy = Image.new('RGB', (64, 64), color='green')
+    img_byte_arr = io.BytesIO()
+    dummy.save(img_byte_arr, format='JPEG')
     
     predictor = LULCPredictor()
-    result = predictor.predict(str(image_path))
+    result = predictor.predict(img_byte_arr)
     
     assert "predicted_class" in result
     assert "confidence" in result
     
-    # Predicted class belongs to 10 known classes
     with open(ARTIFACTS_DIR / "class_mapping.json", "r") as f:
         mapping = json.load(f)
     valid_classes = list(mapping.values())

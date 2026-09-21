@@ -1,0 +1,13 @@
+.git
+node_modules
+__pycache__
+*.pyc
+.env
+ml/datasets/
+backend/test_images.db
+backend/test.db
+backend/.pytest_cache/
+frontend/node_modules/
+frontend/dist/
+**/venv/
+**/.venv/

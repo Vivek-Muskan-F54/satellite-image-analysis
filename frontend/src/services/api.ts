@@ -63,3 +63,8 @@ export const imageApi = {
   get: (id: string) => apiClient.get(`/api/images/${id}`),
   delete: (id: string) => apiClient.delete(`/api/images/${id}`),
 };
+export const analysesApi = {
+  create: (imageId: string) => apiClient.post(`/api/analyses/images/${imageId}`),
+  list: () => apiClient.get('/api/analyses'),
+  get: (id: string) => apiClient.get(`/api/analyses/${id}`),
+};

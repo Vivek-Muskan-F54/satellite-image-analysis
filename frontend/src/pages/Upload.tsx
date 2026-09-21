@@ -2,16 +2,18 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardBody } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { Upload as UploadIcon, X, Image as ImageIcon, CheckCircle } from 'lucide-react';
-import { imageApi } from '../services/api';
+import { Upload as UploadIcon, X, Image as ImageIcon, CheckCircle, Activity } from 'lucide-react';
+import { imageApi, analysesApi } from '../services/api';
 
 export const Upload: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [uploadedImageId, setUploadedImageId] = useState<string | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
@@ -64,6 +66,7 @@ export const Upload: React.FC = () => {
     }
     setProgress(0);
     setError('');
+    setUploadedImageId(null);
   };
 
   const handleUpload = async () => {
@@ -77,12 +80,13 @@ export const Upload: React.FC = () => {
     formData.append('file', file);
     
     try {
-      await imageApi.upload(formData, (progressEvent) => {
+      const res = await imageApi.upload(formData, (progressEvent) => {
         if (progressEvent.total) {
           const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
           setProgress(percentCompleted);
         }
       });
+      setUploadedImageId(res.data.id);
       setIsSuccess(true);
     } catch (err: any) {
       setIsUploading(false);
@@ -95,6 +99,23 @@ export const Upload: React.FC = () => {
     }
   };
 
+  const handleAnalyze = async () => {
+    if (!uploadedImageId) return;
+    setIsAnalyzing(true);
+    setError('');
+    try {
+      const res = await analysesApi.create(uploadedImageId);
+      navigate(`/analyses/${res.data.id}`);
+    } catch (err: any) {
+      setIsAnalyzing(false);
+      if (err.response && err.response.data && err.response.data.detail) {
+        setError(err.response.data.detail);
+      } else {
+        setError('Analysis failed. Please try again.');
+      }
+    }
+  };
+
   if (isSuccess) {
     return (
       <div className="max-w-3xl mx-auto space-y-6">
@@ -103,17 +124,29 @@ export const Upload: React.FC = () => {
             <CheckCircle className="mx-auto h-16 w-16 text-green-500 mb-4" />
             <h2 className="text-2xl font-bold text-slate-900 mb-2">Upload successful</h2>
             <p className="text-slate-600 mb-8">
-              Image uploaded successfully. Analysis will be available in the next processing phase.
+              Your image has been saved. You can now perform land cover classification.
             </p>
-            <div className="space-x-4">
-              <Button onClick={() => navigate('/analyses')} variant="outline">
-                View History
-              </Button>
+            {error && (
+              <div className="mb-4 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
+                {error}
+              </div>
+            )}
+            <div className="flex justify-center space-x-4">
               <Button onClick={() => {
                 setIsSuccess(false);
                 clearFile();
-              }}>
+              }} variant="outline" disabled={isAnalyzing}>
                 Upload Another
+              </Button>
+              <Button onClick={handleAnalyze} disabled={isAnalyzing} className="inline-flex items-center">
+                {isAnalyzing ? (
+                  <span>Analyzing...</span>
+                ) : (
+                  <>
+                    <Activity className="h-4 w-4 mr-2" />
+                    Analyze Image
+                  </>
+                )}
               </Button>
             </div>
           </CardBody>
