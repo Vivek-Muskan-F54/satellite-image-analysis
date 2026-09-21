@@ -1,7 +1,7 @@
 """storage provider
 
-Revision ID: 003_storage_provider
-Revises: 002_create_satellite_images_table
+Revision ID: 003
+Revises: 002
 Create Date: 2026-09-19 14:00:00.000000
 
 """
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '003_storage_provider'
-down_revision: Union[str, None] = '002_create_satellite_images_table'
+revision: str = '003'
+down_revision: Union[str, None] = '002'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -36,7 +36,7 @@ def upgrade() -> None:
         batch_op.alter_column('storage_provider', nullable=False)
         batch_op.alter_column('storage_key', nullable=False)
         
-        batch_op.drop_constraint('uq_satellite_images_stored_filename', type_='unique') # SQLite might not have this name
+        batch_op.drop_constraint('satellite_images_stored_filename_key', type_='unique')
         # Actually it's unnamed in SQLite, Alembic's batch alter table can handle recreations.
         # Let's just drop the columns and recreate the unique constraint.
         batch_op.drop_column('stored_filename')

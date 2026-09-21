@@ -1,6 +1,6 @@
 """create user table
 
-Revision ID: 001_create_user_table
+Revision ID: 001
 Revises: 
 Create Date: 2026-09-19 12:00:00.000000
 
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '001_create_user_table'
+revision: str = '001'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None

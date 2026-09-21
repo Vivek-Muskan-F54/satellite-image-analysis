@@ -1,7 +1,7 @@
 """create satellite images table
 
-Revision ID: 002_create_satellite_images_table
-Revises: 001_create_user_table
+Revision ID: 002
+Revises: 001
 Create Date: 2026-09-19 13:00:00.000000
 
 """
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '002_create_satellite_images_table'
-down_revision: Union[str, None] = '001_create_user_table'
+revision: str = '002'
+down_revision: Union[str, None] = '001'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

@@ -6,7 +6,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "5173:5173"
+      - "5173:80"
     environment:
       - VITE_API_BASE_URL=http://localhost:8000
     depends_on:
@@ -22,7 +22,7 @@ services:
       - DATABASE_URL=postgresql://user:password@db:5432/satellite_db
       - SECRET_KEY=development_secret_key_change_in_production
       - ACCESS_TOKEN_EXPIRE_MINUTES=1440
-      - CORS_ORIGINS=["http://localhost:5173","http://localhost:3000"]
+      - CORS_ORIGINS=["http://localhost:5173","http://127.0.0.1:5173","http://localhost:3000"]
     depends_on:
       - db
 
