@@ -1,19 +1,19 @@
 import React from 'react';
 
 export const Card: React.FC<{children: React.ReactNode, className?: string}> = ({ children, className = '' }) => (
-  <div className={`bg-white shadow-sm border border-slate-200 rounded-lg overflow-hidden ${className}`}>
+  <div className={`bg-white shadow-sm border border-slate-200 rounded-xl overflow-hidden ${className}`}>
     {children}
   </div>
 );
 
 export const CardHeader: React.FC<{children: React.ReactNode, className?: string}> = ({ children, className = '' }) => (
-  <div className={`px-6 py-4 border-b border-slate-200 ${className}`}>
+  <div className={`px-6 py-5 border-b border-slate-100 bg-white/50 backdrop-blur-sm ${className}`}>
     {children}
   </div>
 );
 
 export const CardBody: React.FC<{children: React.ReactNode, className?: string}> = ({ children, className = '' }) => (
-  <div className={`px-6 py-4 ${className}`}>
+  <div className={`px-6 py-5 ${className}`}>
     {children}
   </div>
 );

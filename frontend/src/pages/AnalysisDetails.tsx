@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardHeader, CardBody } from '../components/ui/Card';
+import { StatusBadge } from '../components/ui/StatusBadge';
+import { ConfidenceBar } from '../components/ui/ConfidenceBar';
 import { imageApi, analysesApi, apiClient } from '../services/api';
-import { ArrowLeft, AlertCircle } from 'lucide-react';
+import { ArrowLeft, AlertCircle, Calendar, Server, HardDrive, FileImage } from 'lucide-react';
 
 const ImagePreview: React.FC<{ imageId: string }> = ({ imageId }) => {
   const [url, setUrl] = useState<string | null>(null);
@@ -35,10 +37,19 @@ const ImagePreview: React.FC<{ imageId: string }> = ({ imageId }) => {
     };
   }, [imageId]);
 
-  if (loading) return <div className="text-slate-500 py-12">Loading preview...</div>;
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+      <svg className="animate-spin h-8 w-8 mb-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      <p>Loading preview...</p>
+    </div>
+  );
+
   if (error || !url) return (
-    <div className="text-slate-400 py-12 flex flex-col items-center">
-      <AlertCircle className="h-10 w-10 mb-2 opacity-50" />
+    <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+      <AlertCircle className="h-10 w-10 mb-3 opacity-50" />
       <p>Preview unavailable</p>
     </div>
   );
@@ -46,8 +57,8 @@ const ImagePreview: React.FC<{ imageId: string }> = ({ imageId }) => {
   return (
     <img
       src={url}
-      alt="Satellite Image"
-      className="w-full h-auto object-contain max-h-[500px]"
+      alt="Satellite Image Preview"
+      className="w-full h-auto object-contain max-h-[500px] transition-opacity duration-300 rounded-lg shadow-sm"
     />
   );
 };
@@ -84,15 +95,26 @@ export const AnalysisDetails: React.FC = () => {
   };
 
   if (isLoading) {
-    return <div className="p-8 text-slate-500">Loading...</div>;
+    return (
+      <div className="max-w-6xl mx-auto py-12 flex flex-col items-center justify-center">
+        <svg className="animate-spin h-10 w-10 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p className="text-slate-500 font-medium">Loading analysis data...</p>
+      </div>
+    );
   }
 
   if (error || !analysis) {
     return (
-      <div className="p-8">
-        <div className="bg-red-50 text-red-600 p-4 rounded-md mb-4">{error}</div>
-        <Link to="/analyses" className="text-blue-600 hover:underline inline-flex items-center">
-          <ArrowLeft className="h-4 w-4 mr-1" /> Back to History
+      <div className="max-w-3xl mx-auto mt-8">
+        <div className="bg-red-50 border border-red-100 text-red-600 p-6 rounded-xl mb-6 shadow-sm flex items-center">
+          <AlertCircle className="h-6 w-6 mr-3" />
+          <p className="font-medium">{error}</p>
+        </div>
+        <Link to="/analyses" className="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center transition-colors">
+          <ArrowLeft className="h-4 w-4 mr-2" /> Back to History
         </Link>
       </div>
     );
@@ -101,40 +123,44 @@ export const AnalysisDetails: React.FC = () => {
   const renderProbabilities = () => {
     if (!analysis.prediction || !analysis.prediction.probabilities) return null;
     const probs = analysis.prediction.probabilities;
+    const predictedClass = analysis.prediction.predicted_class;
 
-    // Sort probabilities descending
     const sortedClasses = Object.keys(probs).sort((a, b) => probs[b] - probs[a]);
 
     return (
-      <div className="space-y-3 mt-4">
-        <h3 className="font-semibold text-slate-700 text-sm mb-2 uppercase tracking-wide">Class Probabilities</h3>
-        {sortedClasses.map((clsName) => {
-          const prob = probs[clsName];
-          const percent = (prob * 100).toFixed(1);
-          return (
-            <div key={clsName} className="flex items-center text-sm">
-              <div className="w-32 truncate pr-2 text-slate-600">{clsName}</div>
-              <div className="flex-1">
-                <div className="w-full bg-slate-200 rounded-full h-2">
-                  <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${percent}%` }}></div>
-                </div>
-              </div>
-              <div className="w-16 text-right text-slate-500 text-xs ml-2">{percent}%</div>
-            </div>
-          )
-        })}
+      <div className="mt-8 pt-8 border-t border-slate-100">
+        <h3 className="font-semibold text-slate-800 mb-6">Class Probabilities</h3>
+        <div className="space-y-4">
+          {sortedClasses.map((clsName) => (
+            <ConfidenceBar
+              key={clsName}
+              label={clsName}
+              confidence={probs[clsName]}
+              isHighest={clsName === predictedClass}
+            />
+          ))}
+        </div>
       </div>
     );
   };
 
-  const getStatusDisplay = () => {
-    if (analysis.status === 'COMPLETED') {
+  const renderResult = () => {
+    if (analysis.status === 'COMPLETED' && analysis.prediction) {
       return (
-        <div className="p-4 bg-green-50 border border-green-200 rounded-md">
-          <p className="text-green-800 font-medium">Status: Completed</p>
-          <div className="mt-2 text-sm text-green-700">
-            <p><strong>Predicted Class:</strong> {analysis.prediction?.predicted_class}</p>
-            <p><strong>Confidence:</strong> {(analysis.prediction?.confidence * 100).toFixed(1)}%</p>
+        <div>
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 pb-8 border-b border-slate-100">
+            <div>
+              <p className="text-sm text-slate-500 font-medium uppercase tracking-wider mb-2">Predicted Class</p>
+              <h2 className="text-4xl font-extrabold text-slate-900 tracking-tight">
+                {analysis.prediction.predicted_class}
+              </h2>
+            </div>
+            <div className="mt-4 md:mt-0 bg-blue-50 px-6 py-4 rounded-xl border border-blue-100">
+              <p className="text-sm text-blue-600 font-semibold uppercase tracking-wider mb-1">Confidence</p>
+              <p className="text-3xl font-bold text-blue-700">
+                {(analysis.prediction.confidence * 100).toFixed(1)}%
+              </p>
+            </div>
           </div>
           {renderProbabilities()}
         </div>
@@ -143,80 +169,118 @@ export const AnalysisDetails: React.FC = () => {
 
     if (analysis.status === 'FAILED') {
       return (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-md">
-          <p className="text-red-800 font-medium">Status: Failed</p>
-          <p className="text-sm text-red-600 mt-1">{analysis.error_message || 'An error occurred during analysis.'}</p>
+        <div className="py-6 flex flex-col items-center justify-center text-center">
+          <div className="bg-red-50 p-4 rounded-full mb-4">
+            <AlertCircle className="h-10 w-10 text-red-500" />
+          </div>
+          <h2 className="text-xl font-bold text-slate-900 mb-2">Analysis Failed</h2>
+          <p className="text-slate-600 max-w-md">{analysis.error_message || 'An error occurred during inference. Please try uploading the image again.'}</p>
         </div>
       );
     }
 
     return (
-      <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
-        <p className="text-blue-800 font-medium">Status: {analysis.status}</p>
-        <p className="text-sm text-blue-600 mt-1">Machine learning analysis is currently running.</p>
+      <div className="py-12 flex flex-col items-center justify-center text-center">
+        <svg className="animate-spin h-10 w-10 text-blue-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <h2 className="text-xl font-bold text-slate-900 mb-2">Analysis in Progress</h2>
+        <p className="text-slate-500">The machine learning model is currently processing this image...</p>
       </div>
     );
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6">
       <div className="flex items-center space-x-4">
-        <Link to="/analyses" className="p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-colors">
+        <Link to="/analyses" className="p-2.5 text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 rounded-full transition-all">
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <h1 className="text-2xl font-bold text-slate-900 truncate flex-1">
-          Analysis Details
-        </h1>
+        <div className="flex-1">
+          <div className="flex items-center space-x-3">
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+              Analysis Details
+            </h1>
+            <StatusBadge status={analysis.status} />
+          </div>
+          <p className="text-sm text-slate-500 mt-1">ID: <span className="font-mono">{analysis.id}</span></p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        <div className="lg:col-span-2 space-y-8">
+          <Card>
+            <CardBody className="p-8">
+              {renderResult()}
+            </CardBody>
+          </Card>
+
           <Card>
             <CardHeader>
-              <h2 className="font-semibold text-slate-800">Image Preview</h2>
+              <h2 className="font-semibold text-slate-900">Source Image</h2>
             </CardHeader>
-            <CardBody>
-              <div className="bg-slate-100 rounded-md flex flex-col items-center justify-center border border-slate-200 overflow-hidden min-h-[300px]">
+            <CardBody className="bg-slate-50 p-6">
+              <div className="rounded-lg overflow-hidden flex items-center justify-center">
                 <ImagePreview imageId={analysis.image_id} />
               </div>
             </CardBody>
           </Card>
-
-          <Card>
-            <CardHeader>
-              <h2 className="font-semibold text-slate-800">Analysis Result</h2>
-            </CardHeader>
-            <CardBody>
-              {getStatusDisplay()}
-            </CardBody>
-          </Card>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-6 lg:sticky lg:top-24">
           <Card>
             <CardHeader>
-              <h2 className="font-semibold text-slate-800">Metadata</h2>
+              <h2 className="font-semibold text-slate-900">Metadata</h2>
             </CardHeader>
-            <CardBody className="space-y-4">
-              <div>
-                <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Model Version</p>
-                <p className="text-sm font-medium text-slate-900 break-all">{analysis.model_version}</p>
-              </div>
-
-              <div>
-                <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Analysis Date</p>
-                <p className="text-sm text-slate-900">{new Date(analysis.created_at).toLocaleString()}</p>
-              </div>
-
-              {image && (
-                <>
-                  <div className="mt-4 pt-4 border-t border-slate-100">
-                    <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-2">Image Info</p>
-                    <p className="text-sm text-slate-900 break-all">{image.original_filename}</p>
-                    <p className="text-sm text-slate-500 mt-1">{(image.file_size / (1024 * 1024)).toFixed(2)} MB</p>
+            <CardBody className="p-0">
+              <div className="divide-y divide-slate-100">
+                <div className="p-5 flex items-start space-x-4">
+                  <Server className="h-5 w-5 text-slate-400 mt-0.5" />
+                  <div>
+                    <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-1">Model Version</p>
+                    <p className="text-sm font-medium text-slate-900">{analysis.model_version}</p>
                   </div>
-                </>
-              )}
+                </div>
+
+                <div className="p-5 flex items-start space-x-4">
+                  <Calendar className="h-5 w-5 text-slate-400 mt-0.5" />
+                  <div>
+                    <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-1">Analysis Date</p>
+                    <p className="text-sm font-medium text-slate-900">
+                      {new Date(analysis.created_at).toLocaleDateString(undefined, {
+                        year: 'numeric', month: 'long', day: 'numeric'
+                      })}
+                    </p>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      {new Date(analysis.created_at).toLocaleTimeString()}
+                    </p>
+                  </div>
+                </div>
+
+                {image && (
+                  <>
+                    <div className="p-5 flex items-start space-x-4 bg-slate-50/50">
+                      <FileImage className="h-5 w-5 text-slate-400 mt-0.5" />
+                      <div className="overflow-hidden">
+                        <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-1">Image Name</p>
+                        <p className="text-sm font-medium text-slate-900 truncate" title={image.original_filename}>
+                          {image.original_filename}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="p-5 flex items-start space-x-4 bg-slate-50/50 rounded-b-xl">
+                      <HardDrive className="h-5 w-5 text-slate-400 mt-0.5" />
+                      <div>
+                        <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-1">File Size</p>
+                        <p className="text-sm font-medium text-slate-900">
+                          {(image.file_size / (1024 * 1024)).toFixed(2)} MB
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
             </CardBody>
           </Card>
         </div>
